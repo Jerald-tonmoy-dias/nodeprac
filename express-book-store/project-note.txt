@@ -1,0 +1,22 @@
+debugging issues related to docker
+
+1️⃣ Shut down Docker and WSL completely
+Run PowerShell as Administrator, then execute:
+wsl --shutdown
+
+
+This stops all WSL2 instances (which Docker uses under the hood).
+2️⃣ Restart the Docker Windows NAT layer
+Still in PowerShell (Admin):
+net stop winnat
+net start winnat
+✅ This clears all ghost port bindings that were left locked by Windows.
+
+
+3️⃣ Restart Docker Desktop
+
+Now:
+
+Quit Docker Desktop completely
+
+Then reopen it (run as Administrator, recommended)

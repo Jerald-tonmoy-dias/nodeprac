@@ -1,3 +1,6 @@
+const booksTable = require('../models/book.model');
+const db = require("../db");
+
 const { BOOKS } = require("../models/book");
 
 exports.getAllBooks = function (req, res) {
