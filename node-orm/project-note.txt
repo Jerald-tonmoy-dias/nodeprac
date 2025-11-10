@@ -1,0 +1,11 @@
+I think drizzle kit studio port conflict with postgres port
+
+
+to run docker - docker up -d  
+ro remove - docker down 
+
+
+for wsl issues
+wsl --shutdown
+
+restart pc
