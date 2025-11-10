@@ -1,22 +1,60 @@
-debugging issues related to docker
+---
 
-1️⃣ Shut down Docker and WSL completely
-Run PowerShell as Administrator, then execute:
-wsl --shutdown
+# **DOCKER + DRIZZLE ORM QUICK NOTES (.TXT EDITION)**
 
+## **1. Common Commands**
 
-This stops all WSL2 instances (which Docker uses under the hood).
-2️⃣ Restart the Docker Windows NAT layer
-Still in PowerShell (Admin):
-net stop winnat
-net start winnat
-✅ This clears all ghost port bindings that were left locked by Windows.
+```
+• Start containers:				docker compose up -d  
+• Stop containers:				docker compose down  
+• Stop & remove volumes:			docker compose down -v  
+• List running containers:			docker ps  
 
+• Open Drizzle Studio:				npx drizzle-kit studio  
+• Push schema changes:				npx drizzle-kit push  
+• Pull existing DB schema:			npx drizzle-kit introspect  
 
-3️⃣ Restart Docker Desktop
+• Run app:					npm start
+```
 
-Now:
+## **2. Fixing Docker / Port Issues**
 
-Quit Docker Desktop completely
+```
+1) Shut down WSL (Admin PowerShell):
+	wsl --shutdown
 
-Then reopen it (run as Administrator, recommended)
+2) Restart Windows NAT:
+	net stop winnat
+	net start winnat
+
+3) Restart Docker Desktop:
+	- Quit Docker Desktop
+	- Reopen as Administrator
+	- Wait until “Docker Desktop is running”
+
+4) Rebuild project:
+	docker compose up -d
+	docker compose down
+
+5) Run Drizzle + App:
+	npx drizzle-kit studio
+	npx drizzle-kit push
+	npm start
+```
+
+## **3. Tips**
+
+```
+• Always close Drizzle Studio before restarting Docker  
+• Use different ports for different projects (5432, 5433, 5440, etc.)  
+• After a power loss, run “wsl --shutdown” before using Docker  
+• If ports stay blocked:
+		net stop winnat && net start winnat  
+• Check active containers:
+		docker ps  
+• Keep only one Postgres container running at once
+```
+
+============
+END OF NOTES
+============

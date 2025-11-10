@@ -1,47 +1,69 @@
-const booksTable = require('../models/book.model');
+const booksTable = require("../models/book.model");
 const db = require("../db");
 
-const { BOOKS } = require("../models/book");
+const { eq, sql } = require("drizzle-orm");
 
-exports.getAllBooks = function (req, res) {
-  res.json(BOOKS);
+// ref :: https://orm.drizzle.team/docs/guides/postgresql-full-text-search
+exports.getAllBooks = async function (req, res) {
+  const search = req.query.search;
+  if (search) {
+    const books = await db
+      .select()
+      .from(booksTable)
+      .where(
+        sql`to_tsvector('english', ${booksTable.title}) @@ to_tsquery('english', ${search})`
+      );
+    // .where(ilike(booksTable.title, `%${search}%`));
+
+    res.json(books);
+  }
+  const books = await db.select().from(booksTable);
+  res.json(books);
 };
 
-exports.getBookById = function (req, res) {
-  const bookId = parseInt(req.params.id);
-  const book = BOOKS.find((b) => b.id === bookId);
-  if (book) {
-    res.json(book);
-  } else {
-    res.status(404).send("Book not found");
+exports.getBookById = async function (req, res) {
+  id = req.params.id;
+
+  const [book] = await db
+    .select()
+    .from(booksTable)
+    .where((table) => eq(table.id, id))
+    .limit(1);
+
+  if (!book) {
+    return res.status(404).send(`Book with id ${id} does not exiest!`);
   }
+  return res.json(book);
 };
 
-exports.createBook = function (req, res) {
-  const { title, author } = req.body;
-  if (!title || title == "" || !author || author == "") {
-    return res.status(400).send("Title and Author are required");
+exports.createBook = async function (req, res) {
+  const { title, description, authorId } = req.body;
+
+  if (!title || title == "") {
+    return res.status(400).send("Title is required");
   }
 
-  const id = BOOKS.length + 1;
-  const newBook = {
-    id,
-    title,
-    author,
-  };
-  BOOKS.push(newBook);
-  return res.status(201).json(newBook);
+  const [result] = await db
+    .insert(booksTable)
+    .values({
+      title,
+      authorId,
+      description,
+    })
+    .returning({ id: booksTable.id });
+
+  return res.status(201).json({
+    message: "Book created successfully!",
+    id: result.id,
+  });
 };
 
-exports.deleteBookById = function (req, res) {
-  const bookId = parseInt(req.params.id);
-  const bookIndex = BOOKS.findIndex((b) => b.id === bookId);
-  if (bookIndex !== -1) {
-    BOOKS.splice(bookIndex, 1);
-    return res.status(200).json({ message: "Book delete succesfully!" }); // why this is not showing on postman though the data is deleted
-  } else {
-    return res.status(404).json({
-      message: "Book not found",
-    });
-  }
+exports.deleteBookById = async function (req, res) {
+  id = req.params.id;
+
+  await db.delete(booksTable).where(eq(booksTable.id, id));
+
+  return res.status(200).json({
+    message: "Book deleted successfully!",
+  });
 };
