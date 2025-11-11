@@ -2,6 +2,7 @@ const booksTable = require("../models/book.model");
 const db = require("../db");
 
 const { eq, sql } = require("drizzle-orm");
+const authorsTable = require("../models/author.model");
 
 // ref :: https://orm.drizzle.team/docs/guides/postgresql-full-text-search
 exports.getAllBooks = async function (req, res) {
@@ -28,6 +29,7 @@ exports.getBookById = async function (req, res) {
     .select()
     .from(booksTable)
     .where((table) => eq(table.id, id))
+    .leftJoin(authorsTable,eq(booksTable.authorId,authorsTable.id))
     .limit(1);
 
   if (!book) {

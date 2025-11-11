@@ -11,10 +11,18 @@ const port = 8000;
 app.use(express.json());
 app.use(loggerMiddleware);
 
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
 // Routes
 app.use("/books", bookRouter);
 app.use("/authors", authorRouter);
 
-app.listen(port, () => {
-  console.log(`Book store app listening at http://localhost:${port}`);
+app.listen(port, "0.0.0.0", (err) => {
+  if (err) {
+    console.error("❌ Server failed to start:", err);
+  } else {
+    console.log(`✅ Server running on http://localhost:${port}`);
+  }
 });

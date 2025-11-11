@@ -1,4 +1,5 @@
 const authorsTable = require("../models/author.model");
+const booksTable = require("../models/book.model");
 const db = require("../db");
 
 const { eq, sql } = require("drizzle-orm");
@@ -46,6 +47,20 @@ exports.createAuthor = async function (req, res) {
     message: "Author created successfully!",
     id: result.id,
   });
+};
+
+exports.getBooksAuthorById = async function (req, res) {
+  id = req.params.id;
+
+  const books = await db
+    .select()
+    .from(booksTable)
+    .where( eq(booksTable.authorId, id));
+
+  // if (!author) {
+  //   return res.status(404).send(`Author with id ${id} does not exiest!`);
+  // }
+  return res.json(books);
 };
 
 // exports.deleteAuthorById = async function (req, res) {

@@ -1,3 +1,12 @@
+
+safest option to run 
+
+npm start 
+docker composer up -d 
+npx drizzle-kit push 
+npx drizzle-kit studio
+
+
 ---
 
 # **DOCKER + DRIZZLE ORM QUICK NOTES (.TXT EDITION)**
