@@ -4,27 +4,20 @@ import { usersTable, userSessions } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 import { createHmac, randomBytes } from "node:crypto";
 import jwt from "jsonwebtoken";
+import { ensureAuthenticatedMiddleware } from "../middlewares/auth.middleware.js";
 const router = express();
 
 // update user
-router.patch("/", async (req, res) => {
-  const user = req.user;
-
-  if (!user) {
-    return res.status(401).json({ error: "You are not logged in!" });
-  }
+router.patch("/", ensureAuthenticatedMiddleware, async (req, res) => {
   const { name } = req.body;
+  const user = req.user;
   await db.update(usersTable).set({ name }).where(eq(usersTable.id, user.id));
 
-  return res.status(200).json({ status: "success", user });
+  return res.status(200).json({ status: "success", });
 });
 // returns current logged in user
-router.get("/", async (req, res) => {
+router.get("/", ensureAuthenticatedMiddleware, async (req, res) => {
   const user = req.user;
-
-  if (!user) {
-    return res.status(401).json({ error: "You are not logged in!" });
-  }
   return res.status(200).json({ user });
 });
 
@@ -72,6 +65,7 @@ router.post("/login", async (req, res) => {
     .select({
       id: usersTable.id,
       email: usersTable.email,
+      role: usersTable.role,
       name: usersTable.name,
       salt: usersTable.salt,
       password: usersTable.password,
@@ -100,6 +94,7 @@ router.post("/login", async (req, res) => {
     id: exiestingUser.id,
     email: exiestingUser.email,
     name: exiestingUser.name,
+    role: exiestingUser.role,
   };
 
   const token = jwt.sign(payload, process.env.JWT_SECRET);

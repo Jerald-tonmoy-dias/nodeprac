@@ -1,6 +1,7 @@
 import express from "express";
 import userRouter from "./routes/user.routes.js";
-import jwt from "jsonwebtoken";
+import adminRouter from "./routes/admin.routes.js";
+import { authenticationMiddleware } from "./middlewares/auth.middleware.js";
 const app = express();
 
 const PORT = process.env.PORT || 8000;
@@ -8,33 +9,14 @@ const PORT = process.env.PORT || 8000;
 app.use(express.json());
 
 // custom middleware for current user
-app.use(async function (req, res, next) {
-  try {
-    const tokenHeader = req.headers["authorization"];
-
-    if (!tokenHeader) return next();
-    if (!tokenHeader.startsWith("Bearer")) {
-      return res.status(400).json({
-        error: "authorization header must start with Bearer",
-      });
-    }
-
-    const token = tokenHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    req.user = decoded;
-
-    next();
-  } catch (err) {
-    next();
-  }
-});
+app.use(authenticationMiddleware);
 
 // Routes
 app.get("/", (req, res) => {
   return res.json({ status: "Server is up and running" });
 });
 app.use("/user", userRouter);
+app.use("/admin", adminRouter);
 
 app.listen(PORT, "0.0.0.0", (err) => {
   if (err) {
