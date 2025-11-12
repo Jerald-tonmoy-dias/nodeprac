@@ -8,30 +8,32 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 // Middleware (Plugins)
 app.use(express.json());
+
+// custom middleware for current user
 app.use(async function (req, res, next) {
-  const sessionId = req.headers["session-id"];
+  try {
+    const sessionId = req.headers["session-id"];
+    if (!sessionId) return next();
 
-  if (!sessionId) {
-    return next();
+    const [data] = await db
+      .select({
+        sessionId: userSessions.id,
+        id: usersTable.id,
+        userId: userSessions.userId,
+        name: usersTable.name,
+        email: usersTable.email,
+      })
+      .from(userSessions)
+      .rightJoin(usersTable, eq(usersTable.id, userSessions.userId))
+      .where(eq(userSessions.id, sessionId)); // fixed here
+
+    if (data) req.user = data;
+
+    next();
+  } catch (err) {
+    console.error("Session middleware error:", err);
+    next();
   }
-
-  const [data] = await db
-    .select({
-      sessionId: userSessions.id,
-      id: usersTable.id,
-      userId: userSessions.userId,
-      name: usersTable.name,
-      email: usersTable.email,
-    })
-    .from(userSessions)
-    .rightJoin(usersTable, eq(usersTable.id, userSessions.userId))
-    .where((table) => eq(table.id, sessionId));
-
-  if (!data) {
-    return next();
-  }
-  req.user = data;
-  next();
 });
 
 // Routes

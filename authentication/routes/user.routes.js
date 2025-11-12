@@ -20,7 +20,6 @@ router.patch("/", async (req, res) => {
 // returns current logged in user
 router.get("/", async (req, res) => {
   const user = req.user;
-  return res.json({reqs : req });
 
   if (!user) {
     return res.status(401).json({ error: "You are not logged in!" });
