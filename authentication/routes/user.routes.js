@@ -3,6 +3,7 @@ import db from "../db/index.js";
 import { usersTable, userSessions } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 import { createHmac, randomBytes } from "node:crypto";
+import jwt from "jsonwebtoken";
 const router = express();
 
 // update user
@@ -71,6 +72,7 @@ router.post("/login", async (req, res) => {
     .select({
       id: usersTable.id,
       email: usersTable.email,
+      name: usersTable.name,
       salt: usersTable.salt,
       password: usersTable.password,
     })
@@ -94,14 +96,15 @@ router.post("/login", async (req, res) => {
     });
   }
 
-  //   Generat a session for user
-  const [session] = await db
-    .insert(userSessions)
-    .values({
-      userId: exiestingUser.id,
-    })
-    .returning({ id: userSessions.id });
-  return res.json({ status: "success", sessionId: session.id });
+  const payload = {
+    id: exiestingUser.id,
+    email: exiestingUser.email,
+    name: exiestingUser.name,
+  };
+
+  const token = jwt.sign(payload, process.env.JWT_SECRET);
+
+  return res.json({ status: "success", token });
 });
 
 export default router;

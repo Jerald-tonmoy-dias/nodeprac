@@ -1,8 +1,6 @@
 import express from "express";
 import userRouter from "./routes/user.routes.js";
-import db from "./db/index.js";
-import { userSessions, usersTable } from "./db/schema.js";
-import { eq } from "drizzle-orm";
+import jwt from "jsonwebtoken";
 const app = express();
 
 const PORT = process.env.PORT || 8000;
@@ -12,26 +10,22 @@ app.use(express.json());
 // custom middleware for current user
 app.use(async function (req, res, next) {
   try {
-    const sessionId = req.headers["session-id"];
-    if (!sessionId) return next();
+    const tokenHeader = req.headers["authorization"];
 
-    const [data] = await db
-      .select({
-        sessionId: userSessions.id,
-        id: usersTable.id,
-        userId: userSessions.userId,
-        name: usersTable.name,
-        email: usersTable.email,
-      })
-      .from(userSessions)
-      .rightJoin(usersTable, eq(usersTable.id, userSessions.userId))
-      .where(eq(userSessions.id, sessionId)); // fixed here
+    if (!tokenHeader) return next();
+    if (!tokenHeader.startsWith("Bearer")) {
+      return res.status(400).json({
+        error: "authorization header must start with Bearer",
+      });
+    }
 
-    if (data) req.user = data;
+    const token = tokenHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.user = decoded;
 
     next();
   } catch (err) {
-    console.error("Session middleware error:", err);
     next();
   }
 });
